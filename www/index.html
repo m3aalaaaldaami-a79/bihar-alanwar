@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>روابطي — خزنة الروابط الذكية</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Segoe UI"', 'Tahoma', '"Noto Sans Arabic"', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", Tahoma, "Noto Sans Arabic", system-ui, -apple-system, sans-serif;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
+    mark.hl {
+      background: rgba(250, 204, 21, 0.35);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 4px;
+    }
+    .dark mark.hl {
+      background: rgba(250, 204, 21, 0.28);
+      color: #fef08a;
+    }
+    .card-hover {
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+    }
+    .toast-enter {
+      animation: slideUp 0.22s ease forwards;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Top Header -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-3 sm:px-5 h-16 flex items-center gap-2 sm:gap-3">
+      <!-- Mobile Menu Toggle -->
+      <button id="mobileMenuBtn" type="button" aria-label="القائمة"
+        class="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <!-- Brand -->
+      <div class="flex items-center gap-2.5 shrink-0">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/25">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+        </div>
+        <div class="hidden sm:block leading-tight">
+          <h1 class="font-bold text-base tracking-tight">روابطي</h1>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">خزنة الاستدعاء الفوري</p>
+        </div>
+      </div>
+
+      <!-- Instant Search Bar -->
+      <div class="flex-1 max-w-2xl relative">
+        <div class="relative flex items-center">
+          <svg class="w-4 h-4 text-slate-400 absolute right-3.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18a7.5 7.5 0 006.15-3.35z" />
+          </svg>
+          <input id="searchInput" type="text" autocomplete="off"
+            placeholder="استدعاء فوري: ابحث بالاسم، الرابط، الوسم، الملاحظة أو الكود السريع (Ctrl+K)..."
+            class="w-full pr-10 pl-20 py-2.5 text-sm rounded-xl bg-slate-100 dark:bg-slate-800/90 border border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500/20 outline-none transition" />
+          <div class="absolute left-2 flex items-center gap-1">
+            <button id="clearSearchBtn" type="button" title="مسح البحث"
+              class="hidden p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <kbd class="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md">/</kbd>
+          </div>
+        </div>
+        <!-- Instant Jump Hint -->
+        <div id="instantJumpHint" class="hidden absolute left-0 right-0 top-full mt-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/90 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-700 dark:text-indigo-300 flex items-center justify-between shadow-lg z-40">
+          <span id="instantJumpText" class="truncate"></span>
+          <span class="shrink-0 font-semibold mr-2">اضغط Enter للفتح المباشر ↵</span>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button id="openAddModalBtn" type="button"
+          class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white text-sm font-semibold shadow-sm shadow-indigo-600/25 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          <span class="hidden sm:inline">إضافة رابط</span>
+        </button>
+
+        <button id="openBackupModalBtn" type="button" title="النسخ الاحتياطي والاستيراد والتصدير"
+          class="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
+          </svg>
+        </button>
+
+        <button id="themeToggleBtn" type="button" title="تبديل الوضع الليلي/النهاري"
+          class="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition">
+          <svg id="sunIcon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.95l-.71.71M21 12h-1M4 12H3m16.66 7.66l-.71-.71M4.05 4.05l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg id="moonIcon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="flex-1 max-w-7xl w-full mx-auto flex relative">
+
+    <!-- Mobile Backdrop -->
+    <div id="sidebarBackdrop" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 lg:hidden"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="fixed lg:sticky top-16 right-0 bottom-0 w-72 lg:w-64 shrink-0 bg-white dark:bg-slate-900 lg:bg-transparent lg:dark:bg-transparent border-l border-slate-200 dark:border-slate-800 p-4 overflow-y-auto z-40 transform translate-x-full lg:translate-x-0 transition-transform duration-200 lg:h-[calc(100vh-4rem)]">
+
+      <!-- Quick Stats Mini Card -->
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <div class="p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+          <div class="text-[11px] text-slate-500 dark:text-slate-400">إجمالي الروابط</div>
+          <div id="statTotal" class="text-lg font-bold text-indigo-600 dark:text-indigo-400">0</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+          <div class="text-[11px] text-slate-500 dark:text-slate-400">مرات الاستدعاء</div>
+          <div id="statClicks" class="text-lg font-bold text-emerald-600 dark:text-emerald-400">0</div>
+        </div>
+      </div>
+
+      <!-- Smart Views -->
+      <div class="mb-5">
+        <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 mb-2">العرض السريع</div>
+        <nav id="smartViewsNav" class="space-y-1">
+          <button data-view="all" type="button" class="nav-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition">
+            <span class="flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+              جميع الروابط
+            </span>
+            <span id="count-all" class="text-xs px-2 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800">0</span>
+          </button>
+
+          <button data-view="pinned" type="button" class="nav-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition">
+            <span class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+              المثبتة والمفضلة
+            </span>
+            <span id="count-pinned" class="text-xs px-2 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800">0</span>
+          </button>
+
+          <button data-view="frequent" type="button" class="nav-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition">
+            <span class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              الأكثر استدعاءً
+            </span>
+            <span id="count-frequent" class="text-xs px-2 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800">0</span>
+          </button>
+
+          <button data-view="readLater" type="button" class="nav-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition">
+            <span class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              للقراءة لاحقاً
+            </span>
+            <span id="count-readLater" class="text-xs px-2 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800">0</span>
+          </button>
+
+          <button data-view="archived" type="button" class="nav-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition">
+            <span class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+              الأرشيف
+            </span>
+            <span id="count-archived" class="text-xs px-2 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800">0</span>
+          </button>
+
+          <button data-view="vault" type="button" class="nav-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition">
+            <span class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              الخزنة الخاصة
+            </span>
+            <span id="count-vault" class="text-xs px-2 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800">0</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Categories -->
+      <div class="mb-5">
+        <div class="flex items-center justify-between px-2 mb-2">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">التصنيفات والمجلدات</span>
+          <button id="openCategoryModalBtn" type="button" title="إدارة التصنيفات"
+            class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium">+ إدارة</button>
+        </div>
+        <div id="categoriesNav" class="space-y-1"></div>
+      </div>
+
+      <!-- Popular Tags -->
+      <div>
+        <div class="flex items-center justify-between px-2 mb-2">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">الوسوم</span>
+          <button id="clearTagFilterBtn" type="button" class="hidden text-xs text-rose-500 hover:underline">إلغاء</button>
+        </div>
+        <div id="tagsCloud" class="flex flex-wrap gap-1.5 px-1"></div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 min-w-0 p-3 sm:p-5 lg:p-6">
+
+      <!-- Quick Add Inline Strip -->
+      <form id="quickAddForm" class="mb-5 p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row gap-2">
+        <div class="flex-1 flex flex-col sm:flex-row gap-2">
+          <input id="quickUrl" type="text" placeholder="الصق أي رابط هنا للحفظ السريع (مثل: github.com أو youtube.com)..."
+            class="flex-1 px-3.5 py-2 text-sm rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none" />
+          <input id="quickTitle" type="text" placeholder="الاسم (اختياري)"
+            class="sm:w-44 px-3.5 py-2 text-sm rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none" />
+          <input id="quickAlias" type="text" placeholder="كود سريع (مثل: yt)"
+            class="sm:w-36 px-3.5 py-2 text-sm rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none" />
+        </div>
+        <button type="submit"
+          class="px-4 py-2 rounded-xl bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 text-white text-sm font-semibold shrink-0 transition">
+          حفظ سريع
+        </button>
+      </form>
+
+      <!-- Toolbar: View Title, Sort, Layout Toggle, Bulk Mode -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2 min-w-0">
+          <h2 id="currentViewTitle" class="text-lg font-bold truncate">جميع الروابط</h2>
+          <span id="visibleCountBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">0</span>
+          <span id="activeTagBadge" class="hidden inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300">
+            <span id="activeTagText"></span>
+            <button id="removeActiveTagBtn" type="button" class="hover:text-rose-500 font-bold">×</button>
+          </span>
+        </div>
+
+        <div class="flex items-center flex-wrap gap-2">
+          <!-- Vault Lock Button (shown only when vault is unlocked) -->
+          <button id="lockVaultBtn" type="button" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-xs font-semibold hover:bg-rose-200 dark:hover:bg-rose-900/60 transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            قفل الخزنة
+          </button>
+
+          <!-- Sort Select -->
+          <select id="sortSelect" aria-label="ترتيب الروابط"
+            class="px-3 py-1.5 text-xs sm:text-sm rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 outline-none focus:border-indigo-500">
+            <option value="pinned_newest">المثبتة ثم الأحدث</option>
+            <option value="newest">الأحدث إضافةً</option>
+            <option value="most_clicked">الأكثر استدعاءً</option>
+            <option value="last_opened">المفتوحة مؤخراً</option>
+            <option value="alpha">أبجدياً (أ - ي)</option>
+          </select>
+
+          <!-- Bulk Select Toggle -->
+          <button id="bulkModeBtn" type="button"
+            class="px-3 py-1.5 text-xs sm:text-sm rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            تحديد متعدد
+          </button>
+
+          <!-- Grid / List Toggle -->
+          <div class="flex items-center p-1 rounded-xl bg-slate-200/70 dark:bg-slate-800/80">
+            <button id="gridViewBtn" type="button" title="عرض البطاقات" class="p-1.5 rounded-lg transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            </button>
+            <button id="listViewBtn" type="button" title="عرض القائمة المضغوطة" class="p-1.5 rounded-lg transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bulk Actions Bar -->
+      <div id="bulkBar" class="hidden mb-4 p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2 text-sm font-semibold text-indigo-900 dark:text-indigo-200">
+          <span>المحدد: <strong id="bulkCount">0</strong></span>
+          <button id="bulkSelectAllBtn" type="button" class="text-xs underline hover:text-indigo-600">تحديد الكل</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <select id="bulkMoveCategorySelect" class="px-2.5 py-1.5 text-xs rounded-lg bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-700 outline-none"></select>
+          <button id="bulkMoveBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">نقل للتصنيف</button>
+          <button id="bulkShareWaBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">مشاركة واتساب</button>
+          <button id="bulkCopyBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-700 text-white hover:bg-slate-600">نسخ الروابط</button>
+          <button id="bulkArchiveBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 text-white hover:bg-amber-700">أرشفة</button>
+          <button id="bulkDeleteBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 text-white hover:bg-rose-700">حذف</button>
+        </div>
+      </div>
+
+      <!-- Vault Locked Screen -->
+      <div id="vaultLockedPanel" class="hidden py-14 px-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center max-w-md mx-auto mt-6">
+        <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        <h3 id="vaultTitle" class="text-lg font-bold mb-1">الخزنة الخاصة محمية</h3>
+        <p id="vaultSubtitle" class="text-xs text-slate-500 dark:text-slate-400 mb-5">أدخل رمز PIN لفتح الروابط الخاصة المخفية عن البحث العام.</p>
+        <form id="vaultPinForm" class="space-y-3">
+          <input id="vaultPinInput" type="password" inputmode="numeric" maxlength="8" placeholder="أدخل رمز PIN (4 أرقام أو أكثر)"
+            class="w-full text-center tracking-[0.4em] font-bold px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-rose-500 outline-none" />
+          <button type="submit" id="vaultPinSubmitBtn"
+            class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold transition">
+            فتح الخزنة
+          </button>
+        </form>
+      </div>
+
+      <!-- Links Container -->
+      <div id="linksContainer"></div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden py-16 px-4 text-center rounded-2xl bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 flex items-center justify-center">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+        </div>
+        <h3 id="emptyTitle" class="text-base font-bold mb-1">لا توجد روابط مطابقة</h3>
+        <p id="emptySubtitle" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-4">أضف روابطك المهمة الآن لتتمكن من استدعائها في ثانية واحدة لاحقاً.</p>
+        <button id="emptyAddBtn" type="button" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition">
+          + إضافة رابط جديد
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add / Edit Link Modal -->
+  <div id="linkModal" class="hidden fixed inset-0 z-50 bg-slate-950/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
+        <h3 id="linkModalTitle" class="font-bold text-base">إضافة رابط جديد</h3>
+        <button id="closeLinkModalBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="linkForm" class="p-5 space-y-4">
+        <input type="hidden" id="editLinkId" />
+
+        <div>
+          <label for="linkUrlInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">الرابط (URL) *</label>
+          <input id="linkUrlInput" type="text" required placeholder="https://example.com" dir="ltr"
+            class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none text-left" />
+          <p id="duplicateWarning" class="hidden mt-1 text-xs text-amber-600 dark:text-amber-400 font-medium">تنبيه: هذا الرابط محفوظ مسبقاً في قائمتك.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label for="linkTitleInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">اسم الرابط *</label>
+            <input id="linkTitleInput" type="text" required placeholder="مثلاً: لوحة تحكم GitHub"
+              class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label for="linkAliasInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">كود استدعاء سريع</label>
+            <input id="linkAliasInput" type="text" placeholder="مثل: gh"
+              class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="linkCategorySelect" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">التصنيف</label>
+            <select id="linkCategorySelect"
+              class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none"></select>
+          </div>
+          <div>
+            <label for="linkTagsInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">الوسوم (افصل بفاصلة أو مسافة)</label>
+            <input id="linkTagsInput" type="text" placeholder="عمل، برمجة، مهم"
+              class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label for="linkNotesInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">ملاحظات أو وصف (يُبحث فيه أيضاً)</label>
+          <textarea id="linkNotesInput" rows="2" placeholder="لماذا حفظت هذا الرابط؟ كلمات مفتاحية إضافية تساعدك على استدعائه..."
+            class="w-full px-3.5 py-2 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none resize-none"></textarea>
+        </div>
+
+        <div class="flex flex-wrap gap-4 pt-1">
+          <label class="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input id="linkPinnedCheck" type="checkbox" class="w-4 h-4 accent-amber-500 rounded" />
+            <span>تثبيت في المفضلة</span>
+          </label>
+          <label class="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input id="linkReadLaterCheck" type="checkbox" class="w-4 h-4 accent-sky-500 rounded" />
+            <span>للقراءة لاحقاً</span>
+          </label>
+          <label class="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input id="linkPrivateCheck" type="checkbox" class="w-4 h-4 accent-rose-500 rounded" />
+            <span>حفظ في الخزنة الخاصة</span>
+          </label>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+          <button id="cancelLinkModalBtn" type="button" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">إلغاء</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm">حفظ الرابط</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Categories Manager Modal -->
+  <div id="categoryModal" class="hidden fixed inset-0 z-50 bg-slate-950/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md max-h-[88vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800">
+        <h3 class="font-bold text-base">إدارة التصنيفات والمجلدات</h3>
+        <button id="closeCategoryModalBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <form id="addCategoryForm" class="flex gap-2">
+          <input id="newCategoryName" type="text" required placeholder="اسم التصنيف الجديد..."
+            class="flex-1 px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500" />
+          <input id="newCategoryColor" type="color" value="#6366f1" title="لون التصنيف"
+            class="w-10 h-10 p-1 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer" />
+          <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold">إضافة</button>
+        </form>
+        <div id="categoriesManagerList" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backup, Import & Export Modal -->
+  <div id="backupModal" class="hidden fixed inset-0 z-50 bg-slate-950/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800">
+        <h3 class="font-bold text-base">النسخ الاحتياطي، الاستيراد والتصدير</h3>
+        <button id="closeBackupModalBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-5 space-y-5">
+        <!-- Export Section -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase mb-2.5">تصدير بياناتك</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button id="exportJsonBtn" type="button" class="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition text-center">
+              نسخة احتياطية JSON
+            </button>
+            <button id="exportHtmlBookmarksBtn" type="button" class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition text-center">
+              مفضلة متصفح HTML
+            </button>
+            <button id="exportCsvBtn" type="button" class="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 text-xs font-semibold hover:bg-sky-100 dark:hover:bg-sky-900/60 transition text-center">
+              جدول Excel (CSV)
+            </button>
+          </div>
+        </div>
+
+        <!-- Import Section -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase mb-2.5">استيراد روابط</h4>
+          <div class="space-y-2.5">
+            <label class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-dashed border-slate-300 dark:border-slate-700 cursor-pointer hover:border-indigo-500 transition">
+              <div>
+                <div class="text-sm font-semibold">استيراد ملف JSON أو مفضلة HTML</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400">يدعم النسخ الاحتياطية ومفضلة Chrome / Edge / Firefox</div>
+              </div>
+              <span class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold shrink-0">اختر ملف</span>
+              <input id="importFileInput" type="file" accept=".json,.html,.htm" class="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Bulk Paste URLs -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">لصق متعدد (رابط في كل سطر)</h4>
+          <textarea id="bulkPasteTextarea" rows="3" dir="ltr" placeholder="https://example.com&#10;https://openai.com"
+            class="w-full p-3 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500 text-left"></textarea>
+          <button id="bulkPasteImportBtn" type="button" class="mt-2 px-4 py-2 rounded-xl bg-slate-900 dark:bg-indigo-600 text-white text-xs font-semibold hover:opacity-90">
+            استيراد الروابط الملصقة
+          </button>
+        </div>
+
+        <!-- Vault PIN Reset & Clear Demo -->
+        <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <button id="changePinBtn" type="button" class="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-500">
+            تغيير / تعيين رمز الخزنة الخاصة
+          </button>
+          <button id="resetAllDataBtn" type="button" class="text-xs font-semibold text-rose-600 hover:underline">
+            مسح جميع البيانات
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal (Replaces window.confirm) -->
+  <div id="confirmModal" class="hidden fixed inset-0 z-[60] bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-sm p-5 shadow-2xl">
+      <h3 id="confirmTitle" class="font-bold text-base mb-1.5">تأكيد الإجراء</h3>
+      <p id="confirmMessage" class="text-sm text-slate-600 dark:text-slate-300 mb-5"></p>
+      <div class="flex items-center justify-end gap-2">
+        <button id="confirmCancelBtn" type="button" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">إلغاء</button>
+        <button id="confirmOkBtn" type="button" class="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white">تأكيد</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 left-4 right-4 sm:right-auto sm:w-96 z-[70] flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'rawabti_app_state_v1';
+
+      const DEFAULT_CATEGORIES = [
+        { id: 'cat_work', name: 'العمل والمشاريع', color: '#6366f1' },
+        { id: 'cat_tools', name: 'أدوات ذكية', color: '#10b981' },
+        { id: 'cat_learn', name: 'تعليم ومراجع', color: '#f59e0b' },
+        { id: 'cat_services', name: 'خدمات وحكومة', color: '#0ea5e9' },
+        { id: 'cat_misc', name: 'متفرقات', color: '#8b5cf6' }
+      ];
+
+      const STARTER_LINKS = [
+        {
+          id: 'lnk_1',
+          title: 'جيت هب — إدارة المستودعات البرمجية',
+          url: 'https://github.com',
+          alias: 'gh',
+          categoryId: 'cat_work',
+          tags: ['برمجة', 'مشاريع', 'أدوات'],
+          notes: 'مستودعات الأكواد وبناء التطبيقات والملفات',
+          pinned: true,
+          readLater: false,
+          archived: false,
+          isPrivate: false,
+          clicks: 0,
+          createdAt: Date.now() - 86400000 * 5,
+          lastOpenedAt: null
+        },
+        {
+          id: 'lnk_2',
+          title: 'خرائط جوجل — الملاحة والأماكن',
+          url: 'https://maps.google.com',
+          alias: 'map',
+          categoryId: 'cat_services',
+          tags: ['خرائط', 'مواقع', 'يومي'],
+          notes: 'البحث عن العناوين والمسارات والأماكن القريبة',
+          pinned: true,
+          readLater: false,
+          archived: false,
+          isPrivate: false,
+          clicks: 0,
+          createdAt: Date.now() - 86400000 * 4,
+          lastOpenedAt: null
+        },
+        {
+          id: 'lnk_3',
+          title: 'ترجمة جوجل الفورية',
+          url: 'https://translate.google.com',
+          alias: 'tr',
+          categoryId: 'cat_tools',
+          tags: ['ترجمة', 'لغات', 'أدوات'],
+          notes: 'ترجمة النصوص والملفات والمواقع بسرعة',
+          pinned: false,
+          readLater: false,
+          archived: false,
+          isPrivate: false,
+          clicks: 0,
+          createdAt: Date.now() - 86400000 * 3,
+          lastOpenedAt: null
+        },
+        {
+          id: 'lnk_4',
+          title: 'موسوعة ويكيبيديا العربية',
+          url: 'https://ar.wikipedia.org',
+          alias: 'wiki',
+          categoryId: 'cat_learn',
+          tags: ['معرفة', 'مراجع', 'قراءة'],
+          notes: 'مرجع سريع للمعلومات والمقالات العلمية والتاريخية',
+          pinned: false,
+          readLater: true,
+          archived: false,
+          isPrivate: false,
+          clicks: 0,
+          createdAt: Date.now() - 86400000 * 2,
+          lastOpenedAt: null
+        },
+        {
+          id: 'lnk_5',
+          title: 'يوتيوب — مقاطع وشروحات تعليمية',
+          url: 'https://www.youtube.com',
+          alias: 'yt',
+          categoryId: 'cat_learn',
+          tags: ['فيديو', 'شروحات', 'تعليم'],
+          notes: 'دورات وشروحات تقنية ومقاطع محفوظة',
+          pinned: false,
+          readLater: true,
+          archived: false,
+          isPrivate: false,
+          clicks: 0,
+          createdAt: Date.now() - 86400000,
+          lastOpenedAt: null
+        }
+      ];
+
+      let state = {
+        links: [],
+        categories: [],
+        theme: 'dark',
+        layout: 'grid',
+        sortBy: 'pinned_newest',
+        vaultPin: '',
+        activeView: 'all', // all | pinned | frequent | readLater | archived | vault | cat:<id>
+        activeTag: '',
+        searchQuery: '',
+        bulkMode: false,
+        selectedIds: [],
+        vaultUnlocked: false
+      };
+
+      let lastDeletedBackup = null;
+      let confirmCallback = null;
+
+      // Safe localStorage helpers
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            state.links = Array.isArray(parsed.links) ? parsed.links : STARTER_LINKS.slice();
+            state.categories = Array.isArray(parsed.categories) && parsed.categories.length
+              ? parsed.categories : DEFAULT_CATEGORIES.slice();
+            state.theme = parsed.theme === 'light' ? 'light' : 'dark';
+            state.layout = parsed.layout === 'list' ? 'list' : 'grid';
+            state.sortBy = parsed.sortBy || 'pinned_newest';
+            state.vaultPin = typeof parsed.vaultPin === 'string' ? parsed.vaultPin : '';
+            return;
+          }
+        } catch (e) {
+          // Fallback to defaults if storage unavailable
+        }
+        state.links = STARTER_LINKS.slice();
+        state.categories = DEFAULT_CATEGORIES.slice();
+      }
+
+      function saveState() {
+        try {
+          const toSave = {
+            links: state.links,
+            categories: state.categories,
+            theme: state.theme,
+            layout: state.layout,
+            sortBy: state.sortBy,
+            vaultPin: state.vaultPin
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+        } catch (e) {
+          // Ignore quota or sandbox storage restrictions
+        }
+      }
+
+      // Arabic-aware normalization for instant fuzzy search
+      function normalizeText(str) {
+        return String(str || '')
+          .toLowerCase()
+          .replace(/[\u064B-\u065F\u0670]/g, '') // remove tashkeel
+          .replace(/[أإآ]/g, 'ا')
+          .replace(/ة/g, 'ه')
+          .replace(/ى/g, 'ي')
+          .trim();
+      }
+
+      function normalizeUrl(raw) {
+        let u = String(raw || '').trim();
+        if (!u) return '';
+        if (!/^https?:\/\//i.test(u)) {
+          u = 'https://' + u;
+        }
+        return u;
+      }
+
+      function extractDomain(url) {
+        try {
+          const parsed = new URL(normalizeUrl(url));
+          return parsed.hostname.replace(/^www\./i, '');
+        } catch (e) {
+          return String(url || '').replace(/^https?:\/\//i, '').split('/')[0] || 'رابط';
+        }
+      }
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function highlightMatch(text, query) {
+        const safe = escapeHtml(text);
+        if (!query || !query.trim()) return safe;
+        const cleanQ = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        try {
+          const re = new RegExp('(' + cleanQ + ')', 'gi');
+          return safe.replace(re, '<mark class="hl">$1</mark>');
+        } catch (e) {
+          return safe;
+        }
+      }
+
+      function getDomainColor(domain) {
+        const palette = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#f97316'];
+        let hash = 0;
+        for (let i = 0; i < domain.length; i++) {
+          hash = domain.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return palette[Math.abs(hash) % palette.length];
+      }
+
+      function formatDateAr(ts) {
+        if (!ts) return '';
+        try {
+          return new Intl.DateTimeFormat('ar-IQ', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(ts));
+        } catch (e) {
+          return new Date(ts).toLocaleDateString();
+        }
+      }
+
+      function copyToClipboard(text, msg) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            showToast(msg || 'تم النسخ إلى الحافظة', 'success');
+          }).catch(function () {
+            fallbackCopy(text, msg);
+          });
+        } else {
+          fallbackCopy(text, msg);
+        }
+      }
+
+      function fallbackCopy(text, msg) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showToast(msg || 'تم النسخ إلى الحافظة', 'success');
+        } catch (e) {
+          showToast('تعذر النسخ التلقائي', 'error');
+        }
+      }
+
+      function showToast(message, type, undoAction) {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        const colors = type === 'error'
+          ? 'bg-rose-600 text-white'
+          : type === 'warning'
+            ? 'bg-amber-600 text-white'
+            : 'bg-slate-900 dark:bg-slate-800 text-white border border-slate-700';
+
+        el.className = 'toast-enter pointer-events-auto px-4 py-3 rounded-xl shadow-xl text-sm flex items-center justify-between gap-3 ' + colors;
+        el.innerHTML = '<span>' + escapeHtml(message) + '</span>';
+
+        if (typeof undoAction === 'function') {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-xs font-bold shrink-0';
+          btn.textContent = 'تراجع';
+          btn.addEventListener('click', function () {
+            undoAction();
+            el.remove();
+          });
+          el.appendChild(btn);
+        }
+
+        container.appendChild(el);
+        setTimeout(function () {
+          el.style.opacity = '0';
+          el.style.transition = 'opacity 0.25s ease';
+          setTimeout(function () { el.remove(); }, 250);
+        }, undoAction ? 5500 : 3000);
+      }
+
+      function openConfirm(title, message, onConfirm) {
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMessage').textContent = message;
+        confirmCallback = onConfirm;
+        document.getElementById('confirmModal').classList.remove('hidden');
+      }
+
+      function closeConfirm() {
+        document.getElementById('confirmModal').classList.add('hidden');
+        confirmCallback = null;
+      }
+
+      // Filtering & Instant Recall Logic
+      function getFilteredLinks() {
+        const q = normalizeText(state.searchQuery);
+        const view = state.activeView;
+
+        if (view === 'vault' && !state.vaultUnlocked) {
+          return [];
+        }
+
+        let list = state.links.filter(function (item) {
+          if (view === 'vault') {
+            if (!item.isPrivate) return false;
+          } else {
+            if (item.isPrivate) return false;
+            if (view === 'archived') {
+              if (!item.archived) return false;
+            } else {
+              if (item.archived) return false;
+              if (view === 'pinned' && !item.pinned) return false;
+              if (view === 'readLater' && !item.readLater) return false;
+              if (view === 'frequent' && (item.clicks || 0) <= 0) return false;
+              if (view.startsWith('cat:')) {
+                const cid = view.slice(4);
+                if (item.categoryId !== cid) return false;
+              }
+            }
+          }
+
+          if (state.activeTag) {
+            if (!Array.isArray(item.tags) || !item.tags.includes(state.activeTag)) return false;
+          }
+
+          if (q) {
+            const cat = state.categories.find(function (c) { return c.id === item.categoryId; });
+            const haystack = normalizeText([
+              item.title,
+              item.url,
+              item.alias,
+              item.notes,
+              (item.tags || []).join(' '),
+              cat ? cat.name : ''
+            ].join(' '));
+
+            const tokens = q.split(/\s+/).filter(Boolean);
+            for (let i = 0; i < tokens.length; i++) {
+              if (!haystack.includes(tokens[i])) return false;
+            }
+          }
+
+          return true;
+        });
+
+        // If searching, prioritize exact alias match first!
+        list.sort(function (a, b) {
+          if (q) {
+            const aExact = normalizeText(a.alias) === q ? 1 : 0;
+            const bExact = normalizeText(b.alias) === q ? 1 : 0;
+            if (aExact !== bExact) return bExact - aExact;
+
+            const aAliasStarts = a.alias && normalizeText(a.alias).startsWith(q) ? 1 : 0;
+            const bAliasStarts = b.alias && normalizeText(b.alias).startsWith(q) ? 1 : 0;
+            if (aAliasStarts !== bAliasStarts) return bAliasStarts - aAliasStarts;
+          }
+
+          if (state.activeView === 'frequent' || state.sortBy === 'most_clicked') {
+            return (b.clicks || 0) - (a.clicks || 0) || (b.createdAt || 0) - (a.createdAt || 0);
+          }
+          if (state.sortBy === 'last_opened') {
+            return (b.lastOpenedAt || 0) - (a.lastOpenedAt || 0) || (b.createdAt || 0) - (a.createdAt || 0);
+          }
+          if (state.sortBy === 'alpha') {
+            return String(a.title || '').localeCompare(String(b.title || ''), 'ar');
+          }
+          if (state.sortBy === 'newest') {
+            return (b.createdAt || 0) - (a.createdAt || 0);
+          }
+          // default: pinned_newest
+          if (Boolean(b.pinned) !== Boolean(a.pinned)) return b.pinned ? 1 : -1;
+          return (b.createdAt || 0) - (a.createdAt || 0);
+        });
+
+        return list;
+      }
+
+      // Render Functions
+      function applyTheme() {
+        const root = document.documentElement;
+        if (state.theme === 'dark') {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+      }
+
+      function renderSidebar() {
+        const publicActive = state.links.filter(function (l) { return !l.isPrivate && !l.archived; });
+        const totalClicks = state.links.reduce(function (acc, l) { return acc + (l.clicks || 0); }, 0);
+
+        document.getElementById('statTotal').textContent = state.links.length;
+        document.getElementById('statClicks').textContent = totalClicks;
+
+        document.getElementById('count-all').textContent = publicActive.length;
+        document.getElementById('count-pinned').textContent = publicActive.filter(function (l) { return l.pinned; }).length;
+        document.getElementById('count-frequent').textContent = publicActive.filter(function (l) { return (l.clicks || 0) > 0; }).length;
+        document.getElementById('count-readLater').textContent = publicActive.filter(function (l) { return l.readLater; }).length;
+        document.getElementById('count-archived').textContent = state.links.filter(function (l) { return !l.isPrivate && l.archived; }).length;
+        document.getElementById('count-vault').textContent = state.links.filter(function (l) { return l.isPrivate; }).length;
+
+        // Highlight active smart view
+        document.querySelectorAll('#smartViewsNav .nav-btn').forEach(function (btn) {
+          const isActive = btn.getAttribute('data-view') === state.activeView;
+          btn.className = 'nav-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition ' +
+            (isActive
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80');
+        });
+
+        // Categories Nav
+        const catNav = document.getElementById('categoriesNav');
+        catNav.innerHTML = '';
+        state.categories.forEach(function (cat) {
+          const count = publicActive.filter(function (l) { return l.categoryId === cat.id; }).length;
+          const viewKey = 'cat:' + cat.id;
+          const isActive = state.activeView === viewKey;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition ' +
+            (isActive
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80');
+          btn.innerHTML =
+            '<span class="flex items-center gap-2.5 truncate">' +
+            '<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:' + escapeHtml(cat.color) + '"></span>' +
+            '<span class="truncate">' + escapeHtml(cat.name) + '</span>' +
+            '</span>' +
+            '<span class="text-xs px-2 py-0.5 rounded-full ' + (isActive ? 'bg-white/20 text-white' : 'bg-slate-200/70 dark:bg-slate-800') + '">' + count + '</span>';
+          btn.addEventListener('click', function () {
+            state.activeView = viewKey;
+            state.selectedIds = [];
+            closeMobileSidebar();
+            renderAll();
+          });
+          catNav.appendChild(btn);
+        });
+
+        // Tags Cloud
+        const tagCounts = {};
+        publicActive.forEach(function (l) {
+          (l.tags || []).forEach(function (t) {
+            tagCounts[t] = (tagCounts[t] || 0) + 1;
+          });
+        });
+        const sortedTags = Object.keys(tagCounts).sort(function (a, b) { return tagCounts[b] - tagCounts[a]; }).slice(0, 18);
+        const tagsCloud = document.getElementById('tagsCloud');
+        tagsCloud.innerHTML = '';
+        document.getElementById('clearTagFilterBtn').classList.toggle('hidden', !state.activeTag);
+
+        if (!sortedTags.length) {
+          tagsCloud.innerHTML = '<span class="text-xs text-slate-400 px-1">لا توجد وسوم بعد</span>';
+        } else {
+          sortedTags.forEach(function (tag) {
+            const active = state.activeTag === tag;
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'text-xs px-2.5 py-1 rounded-lg transition ' +
+              (active
+                ? 'bg-amber-500 text-white font-semibold'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-indigo-950 hover:text-indigo-600');
+            b.textContent = '#' + tag + ' (' + tagCounts[tag] + ')';
+            b.addEventListener('click', function () {
+              state.activeTag = state.activeTag === tag ? '' : tag;
+              closeMobileSidebar();
+              renderAll();
+            });
+            tagsCloud.appendChild(b);
+          });
+        }
+      }
+
+      function getViewHeading() {
+        const map = {
+          all: 'جميع الروابط',
+          pinned: 'المثبتة والمفضلة',
+          frequent: 'الأكثر استدعاءً',
+          readLater: 'للقراءة لاحقاً',
+          archived: 'الأرشيف',
+          vault: 'الخزنة الخاصة'
+        };
+        if (map[state.activeView]) return map[state.activeView];
+        if (state.activeView.startsWith('cat:')) {
+          const cid = state.activeView.slice(4);
+          const found = state.categories.find(function (c) { return c.id === cid; });
+          return found ? found.name : 'التصنيف';
+        }
+        return 'جميع الروابط';
+      }
+
+      function renderToolbarAndVault(filtered) {
+        document.getElementById('currentViewTitle').textContent = getViewHeading();
+        document.getElementById('visibleCountBadge').textContent = filtered.length;
+        document.getElementById('sortSelect').value = state.sortBy;
+
+        const tagBadge = document.getElementById('activeTagBadge');
+        if (state.activeTag) {
+          tagBadge.classList.remove('hidden');
+          document.getElementById('activeTagText').textContent = '#' + state.activeTag;
+        } else {
+          tagBadge.classList.add('hidden');
+        }
+
+        // Layout buttons
+        const gridBtn = document.getElementById('gridViewBtn');
+        const listBtn = document.getElementById('listViewBtn');
+        gridBtn.className = 'p-1.5 rounded-lg transition ' + (state.layout === 'grid' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-xs' : 'text-slate-500');
+        listBtn.className = 'p-1.5 rounded-lg transition ' + (state.layout === 'list' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-xs' : 'text-slate-500');
+
+        // Bulk mode button & bar
+        const bulkBtn = document.getElementById('bulkModeBtn');
+        bulkBtn.className = 'px-3 py-1.5 text-xs sm:text-sm rounded-xl border transition ' +
+          (state.bulkMode
+            ? 'bg-indigo-600 border-indigo-600 text-white font-semibold'
+            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800');
+        document.getElementById('bulkBar').classList.toggle('hidden', !state.bulkMode);
+        document.getElementById('bulkCount').textContent = state.selectedIds.length;
+
+        const bulkCatSel = document.getElementById('bulkMoveCategorySelect');
+        bulkCatSel.innerHTML = state.categories.map(function (c) {
+          return '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.name) + '</option>';
+        }).join('');
+
+        // Vault lock/unlock UI
+        const lockBtn = document.getElementById('lockVaultBtn');
+        const vaultPanel = document.getElementById('vaultLockedPanel');
+        if (state.activeView === 'vault' && !state.vaultUnlocked) {
+          vaultPanel.classList.remove('hidden');
+          lockBtn.classList.add('hidden');
+          if (!state.vaultPin) {
+            document.getElementById('vaultTitle').textContent = 'تعيين رمز PIN للخزنة الخاصة';
+            document.getElementById('vaultSubtitle').textContent = 'أنشئ رمزاً سرياً لحماية روابطك الخاصة وإخفائها عن القائمة العامة.';
+            document.getElementById('vaultPinSubmitBtn').textContent = 'حفظ الرمز وفتح الخزنة';
+          } else {
+            document.getElementById('vaultTitle').textContent = 'الخزنة الخاصة محمية';
+            document.getElementById('vaultSubtitle').textContent = 'أدخل رمز PIN لفتح الروابط الخاصة المخفية عن البحث العام.';
+            document.getElementById('vaultPinSubmitBtn').textContent = 'فتح الخزنة';
+          }
+        } else {
+          vaultPanel.classList.add('hidden');
+          if (state.vaultUnlocked) {
+            lockBtn.classList.remove('hidden');
+            lockBtn.classList.add('inline-flex');
+          } else {
+            lockBtn.classList.add('hidden');
+            lockBtn.classList.remove('inline-flex');
+          }
+        }
+
+        // Instant Jump Hint
+        const hint = document.getElementById('instantJumpHint');
+        if (state.searchQuery.trim() && filtered.length > 0) {
+          hint.classList.remove('hidden');
+          const top = filtered[0];
+          document.getElementById('instantJumpText').textContent = 'أقرب نتيجة: ' + top.title + (top.alias ? ' [' + top.alias + ']' : '');
+        } else {
+          hint.classList.add('hidden');
+        }
+      }
+
+      function renderLinks(filtered) {
+        const container = document.getElementById('linksContainer');
+        const emptyEl = document.getElementById('emptyState');
+
+        if (state.activeView === 'vault' && !state.vaultUnlocked) {
+          container.innerHTML = '';
+          emptyEl.classList.add('hidden');
+          return;
+        }
+
+        if (!filtered.length) {
+          container.innerHTML = '';
+          emptyEl.classList.remove('hidden');
+          document.getElementById('emptyTitle').textContent = state.searchQuery ? 'لم يتم العثور على نتائج مطابقة' : 'لا توجد روابط في هذا القسم';
+          document.getElementById('emptySubtitle').textContent = state.searchQuery
+            ? 'جرّب كلمة بحث أخرى أو امسح الفلاتر الحالية.'
+            : 'أضف روابطك المهمة الآن لتتمكن من استدعائها في ثانية واحدة لاحقاً.';
+          return;
+        }
+
+        emptyEl.classList.add('hidden');
+        container.className = state.layout === 'grid'
+          ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5'
+          : 'flex flex-col gap-2.5';
+
+        const q = state.searchQuery.trim();
+        container.innerHTML = filtered.map(function (item) {
+          const cat = state.categories.find(function (c) { return c.id === item.categoryId; }) || { name: 'عام', color: '#64748b' };
+          const domain = extractDomain(item.url);
+          const letter = domain.charAt(0).toUpperCase();
+          const badgeColor = getDomainColor(domain);
+          const isSelected = state.selectedIds.includes(item.id);
+          const tagsHtml = (item.tags || []).map(function (t) {
+            return '<button type="button" data-action="filter-tag" data-tag="' + escapeHtml(t) + '" class="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-indigo-950 hover:text-indigo-600 transition">#' + highlightMatch(t, q) + '</button>';
+          }).join('');
+
+          const aliasHtml = item.alias
+            ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[11px] font-mono font-bold">/' + highlightMatch(item.alias, q) + '</span>'
+            : '';
+
+          const checkboxHtml = state.bulkMode
+            ? '<input type="checkbox" data-action="toggle-select" data-id="' + item.id + '" ' + (isSelected ? 'checked' : '') + ' class="w-4 h-4 accent-indigo-600 rounded shrink-0 cursor-pointer" />'
+            : '';
+
+          if (state.layout === 'list') {
+            return (
+              '<article data-id="' + item.id + '" class="card-hover p-3 rounded-2xl bg-white dark:bg-slate-900 border ' + (isSelected ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-200 dark:border-slate-800') + ' flex flex-col sm:flex-row sm:items-center justify-between gap-3">' +
+                '<div class="flex items-center gap-3 min-w-0 flex-1">' +
+                  checkboxHtml +
+                  '<div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0" style="background:' + badgeColor + '">' + escapeHtml(letter) + '</div>' +
+                  '<div class="min-w-0 flex-1">' +
+                    '<div class="flex items-center gap-2 flex-wrap">' +
+                      '<button type="button" data-action="open" data-id="' + item.id + '" class="font-bold text-sm text-right hover:text-indigo-600 dark:hover:text-indigo-400 truncate max-w-full">' + highlightMatch(item.title, q) + '</button>' +
+                      aliasHtml +
+                      (item.pinned ? '<span class="text-amber-500 text-xs" title="مثبت">★</span>' : '') +
+                      (item.readLater ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">لاحقاً</span>' : '') +
+                    '</div>' +
+                    '<div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 truncate">' +
+                      '<span class="inline-block w-2 h-2 rounded-full shrink-0" style="background:' + escapeHtml(cat.color) + '"></span>' +
+                      '<span>' + escapeHtml(cat.name) + '</span>' +
+                      '<span>•</span>' +
+                      '<span dir="ltr" class="truncate">' + highlightMatch(domain, q) + '</span>' +
+                      (item.clicks ? '<span>• ' + item.clicks + ' فتح</span>' : '') +
+                    '</div>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="flex items-center gap-1 shrink-0 self-end sm:self-center">' +
+                  '<button type="button" data-action="open" data-id="' + item.id + '" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold">فتح</button>' +
+                  '<button type="button" data-action="copy" data-id="' + item.id + '" title="نسخ الرابط" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>' +
+                  '<button type="button" data-action="whatsapp" data-id="' + item.id + '" title="مشاركة واتساب" class="p-1.5 rounded-lg text-slate-500 hover:bg-emerald-50 dark:hover:bg-emerald-950 hover:text-emerald-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></button>' +
+                  '<button type="button" data-action="pin" data-id="' + item.id + '" title="تثبيت" class="p-1.5 rounded-lg ' + (item.pinned ? 'text-amber-500' : 'text-slate-400 hover:text-amber-500') + ' hover:bg-slate-100 dark:hover:bg-slate-800"><svg class="w-4 h-4" fill="' + (item.pinned ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg></button>' +
+                  '<button type="button" data-action="edit" data-id="' + item.id + '" title="تعديل" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>' +
+                  '<button type="button" data-action="delete" data-id="' + item.id + '" title="حذف" class="p-1.5 rounded-lg text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950 hover:text-rose-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>' +
+                '</div>' +
+              '</article>'
+            );
+          }
+
+          // Grid Card View
+          return (
+            '<article data-id="' + item.id + '" class="card-hover flex flex-col justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border ' + (isSelected ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-200 dark:border-slate-800') + ' shadow-xs">' +
+              '<div>' +
+                '<div class="flex items-start justify-between gap-2 mb-2.5">' +
+                  '<div class="flex items-center gap-2.5 min-w-0">' +
+                    checkboxHtml +
+                    '<div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shrink-0 shadow-xs" style="background:' + badgeColor + '">' + escapeHtml(letter) + '</div>' +
+                    '<div class="min-w-0">' +
+                      '<button type="button" data-action="open" data-id="' + item.id + '" class="block text-right font-bold text-sm leading-snug hover:text-indigo-600 dark:hover:text-indigo-400 line-clamp-1">' + highlightMatch(item.title, q) + '</button>' +
+                      '<div dir="ltr" class="text-xs text-slate-400 truncate text-right">' + highlightMatch(domain, q) + '</div>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="flex items-center gap-1 shrink-0">' +
+                    aliasHtml +
+                    '<button type="button" data-action="pin" data-id="' + item.id + '" title="' + (item.pinned ? 'إلغاء التثبيت' : 'تثبيت') + '" class="p-1 rounded-lg ' + (item.pinned ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600 hover:text-amber-500') + '">' +
+                      '<svg class="w-4 h-4" fill="' + (item.pinned ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>' +
+                    '</button>' +
+                  '</div>' +
+                '</div>' +
+
+                (item.notes ? '<p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-3 line-clamp-2">' + highlightMatch(item.notes, q) + '</p>' : '') +
+
+                '<div class="flex flex-wrap items-center gap-1.5 mb-3">' +
+                  '<span class="inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300">' +
+                    '<span class="w-2 h-2 rounded-full" style="background:' + escapeHtml(cat.color) + '"></span>' +
+                    escapeHtml(cat.name) +
+                  '</span>' +
+                  (item.readLater ? '<span class="text-[11px] px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">للقراءة لاحقاً</span>' : '') +
+                  tagsHtml +
+                '</div>' +
+              '</div>' +
+
+              '<div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">' +
+                '<div class="flex items-center gap-1.5">' +
+                  '<button type="button" data-action="open" data-id="' + item.id + '" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">' +
+                    '<span>فتح</span>' +
+                    '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' +
+                  '</button>' +
+                  '<button type="button" data-action="copy" data-id="' + item.id + '" title="نسخ الرابط" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 transition">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' +
+                  '</button>' +
+                  '<button type="button" data-action="whatsapp" data-id="' + item.id + '" title="مشاركة عبر واتساب" class="p-1.5 rounded-lg text-slate-500 hover:bg-emerald-50 dark:hover:bg-emerald-950 hover:text-emerald-600 transition">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>' +
+                  '</button>' +
+                '</div>' +
+                '<div class="flex items-center gap-1 text-[11px] text-slate-400">' +
+                  '<span title="تاريخ الإضافة: ' + formatDateAr(item.createdAt) + '">' + (item.clicks || 0) + ' فتح</span>' +
+                  '<button type="button" data-action="archive" data-id="' + item.id + '" title="' + (item.archived ? 'استعادة من الأرشيف' : 'أرشفة') + '" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-amber-500 transition">' +
+                    '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>' +
+                  '</button>' +
+                  '<button type="button" data-action="edit" data-id="' + item.id + '" title="تعديل" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-500 transition">' +
+                    '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>' +
+                  '</button>' +
+                  '<button type="button" data-action="delete" data-id="' + item.id + '" title="حذف" class="p-1.5 rounded-lg text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950 hover:text-rose-500 transition">' +
+                    '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
+                  '</button>' +
+                '</div>' +
+              '</div>' +
+            '</article>'
+          );
+        }).join('');
+      }
+
+      function renderAll() {
+        applyTheme();
+        const filtered = getFilteredLinks();
+        renderSidebar();
+        renderToolbarAndVault(filtered);
+        renderLinks(filtered);
+      }
+
+      // Link Actions
+      function openLinkById(id) {
+        const item = state.links.find(function (l) { return l.id === id; });
+        if (!item) return;
+        item.clicks = (item.clicks || 0) + 1;
+        item.lastOpenedAt = Date.now();
+        saveState();
+        renderAll();
+        window.open(item.url, '_blank', 'noopener,noreferrer');
+      }
+
+      function openAddOrEditModal(linkObj) {
+        const sel = document.getElementById('linkCategorySelect');
+        sel.innerHTML = state.categories.map(function (c) {
+          return '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.name) + '</option>';
+        }).join('');
+
+        document.getElementById('duplicateWarning').classList.add('hidden');
+
+        if (linkObj) {
+          document.getElementById('linkModalTitle').textContent = 'تعديل الرابط';
+          document.getElementById('editLinkId').value = linkObj.id;
+          document.getElementById('linkUrlInput').value = linkObj.url;
+          document.getElementById('linkTitleInput').value = linkObj.title;
+          document.getElementById('linkAliasInput').value = linkObj.alias || '';
+          sel.value = linkObj.categoryId || state.categories[0].id;
+          document.getElementById('linkTagsInput').value = (linkObj.tags || []).join('، ');
+          document.getElementById('linkNotesInput').value = linkObj.notes || '';
+          document.getElementById('linkPinnedCheck').checked = Boolean(linkObj.pinned);
+          document.getElementById('linkReadLaterCheck').checked = Boolean(linkObj.readLater);
+          document.getElementById('linkPrivateCheck').checked = Boolean(linkObj.isPrivate);
+        } else {
+          document.getElementById('linkModalTitle').textContent = 'إضافة رابط جديد';
+          document.getElementById('editLinkId').value = '';
+          document.getElementById('linkForm').reset();
+          if (state.activeView.startsWith('cat:')) {
+            sel.value = state.activeView.slice(4);
+          }
+          if (state.activeView === 'vault' && state.vaultUnlocked) {
+            document.getElementById('linkPrivateCheck').checked = true;
+          }
+        }
+
+        document.getElementById('linkModal').classList.remove('hidden');
+        setTimeout(function () { document.getElementById('linkUrlInput').focus(); }, 60);
+      }
+
+      function closeLinkModal() {
+        document.getElementById('linkModal').classList.add('hidden');
+      }
+
+      function parseTags(str) {
+        return String(str || '')
+          .split(/[,،\s#]+/)
+          .map(function (t) { return t.trim(); })
+          .filter(Boolean)
+          .filter(function (v, i, arr) { return arr.indexOf(v) === i; });
+      }
+
+      // Categories Manager Modal
+      function renderCategoriesManager() {
+        const list = document.getElementById('categoriesManagerList');
+        list.innerHTML = '';
+        state.categories.forEach(function (cat) {
+          const count = state.links.filter(function (l) { return l.categoryId === cat.id; }).length;
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700';
+          row.innerHTML =
+            '<div class="flex items-center gap-2.5 min-w-0">' +
+              '<span class="w-4 h-4 rounded-full shrink-0" style="background:' + escapeHtml(cat.color) + '"></span>' +
+              '<span class="text-sm font-medium truncate">' + escapeHtml(cat.name) + '</span>' +
+              '<span class="text-xs text-slate-400">(' + count + ')</span>' +
+            '</div>' +
+            (state.categories.length > 1
+              ? '<button type="button" data-del-cat="' + cat.id + '" class="text-xs text-rose-500 hover:underline shrink-0">حذف</button>'
+              : '<span class="text-[11px] text-slate-400">افتراضي</span>');
+          list.appendChild(row);
+        });
+      }
+
+      // Export Helpers
+      function downloadFile(content, filename, mime) {
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      }
+
+      function exportNetscapeHtml() {
+        let html = '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>روابطي</TITLE>\n<H1>روابطي</H1>\n<DL><p>\n';
+        state.categories.forEach(function (cat) {
+          const items = state.links.filter(function (l) { return !l.isPrivate && l.categoryId === cat.id; });
+          if (!items.length) return;
+          html += '  <DT><H3>' + escapeHtml(cat.name) + '</H3>\n  <DL><p>\n';
+          items.forEach(function (l) {
+            html += '    <DT><A HREF="' + escapeHtml(l.url) + '" ADD_DATE="' + Math.floor((l.createdAt || Date.now()) / 1000) + '">' + escapeHtml(l.title) + '</A>\n';
+          });
+          html += '  </DL><p>\n';
+        });
+        html += '</DL><p>\n';
+        downloadFile(html, 'rawabti-bookmarks.html', 'text/html;charset=utf-8');
+        showToast('تم تصدير مفضلة المتصفح بنجاح', 'success');
+      }
+
+      function exportCsv() {
+        const headers = ['العنوان', 'الرابط', 'الكود السريع', 'التصنيف', 'الوسوم', 'الملاحظات', 'مرات الفتح'];
+        const rows = state.links.filter(function (l) { return !l.isPrivate; }).map(function (l) {
+          const cat = state.categories.find(function (c) { return c.id === l.categoryId; });
+          return [
+            l.title,
+            l.url,
+            l.alias || '',
+            cat ? cat.name : '',
+            (l.tags || []).join(' '),
+            l.notes || '',
+            l.clicks || 0
+          ].map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+        });
+        const csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+        downloadFile(csv, 'rawabti-links.csv', 'text/csv;charset=utf-8');
+        showToast('تم تصدير جدول CSV بنجاح', 'success');
+      }
+
+      // Mobile Sidebar helpers
+      function openMobileSidebar() {
+        document.getElementById('sidebar').classList.remove('translate-x-full');
+        document.getElementById('sidebarBackdrop').classList.remove('hidden');
+      }
+      function closeMobileSidebar() {
+        document.getElementById('sidebar').classList.add('translate-x-full');
+        document.getElementById('sidebarBackdrop').classList.add('hidden');
+      }
+
+      // Event Bindings
+      function bindEvents() {
+        // Mobile menu
+        document.getElementById('mobileMenuBtn').addEventListener('click', openMobileSidebar);
+        document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileSidebar);
+
+        // Theme toggle
+        document.getElementById('themeToggleBtn').addEventListener('click', function () {
+          state.theme = state.theme === 'dark' ? 'light' : 'dark';
+          saveState();
+          applyTheme();
+        });
+
+        // Search input + Enter to instant open
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        searchInput.addEventListener('input', function () {
+          state.searchQuery = searchInput.value;
+          clearSearchBtn.classList.toggle('hidden', !state.searchQuery);
+          renderAll();
+        });
+        searchInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            const filtered = getFilteredLinks();
+            if (filtered.length > 0) {
+              e.preventDefault();
+              openLinkById(filtered[0].id);
+            }
+          } else if (e.key === 'Escape') {
+            searchInput.value = '';
+            state.searchQuery = '';
+            clearSearchBtn.classList.add('hidden');
+            searchInput.blur();
+            renderAll();
+          }
+        });
+        clearSearchBtn.addEventListener('click', function () {
+          searchInput.value = '';
+          state.searchQuery = '';
+          clearSearchBtn.classList.add('hidden');
+          searchInput.focus();
+          renderAll();
+        });
+
+        // Global shortcuts (Ctrl+K or / for instant recall)
+        document.addEventListener('keydown', function (e) {
+          const tag = (document.activeElement && document.activeElement.tagName || '').toLowerCase();
+          const inInput = tag === 'input' || tag === 'textarea' || tag === 'select';
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+          } else if (e.key === '/' && !inInput) {
+            e.preventDefault();
+            searchInput.focus();
+          }
+        });
+
+        // Smart views nav
+        document.querySelectorAll('#smartViewsNav .nav-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            state.activeView = btn.getAttribute('data-view');
+            state.selectedIds = [];
+            closeMobileSidebar();
+            renderAll();
+          });
+        });
+
+        // Tag filter clear
+        document.getElementById('clearTagFilterBtn').addEventListener('click', function () {
+          state.activeTag = '';
+          renderAll();
+        });
+        document.getElementById('removeActiveTagBtn').addEventListener('click', function () {
+          state.activeTag = '';
+          renderAll();
+        });
+
+        // Sort & layout
+        document.getElementById('sortSelect').addEventListener('change', function (e) {
+          state.sortBy = e.target.value;
+          saveState();
+          renderAll();
+        });
+        document.getElementById('gridViewBtn').addEventListener('click', function () {
+          state.layout = 'grid';
+          saveState();
+          renderAll();
+        });
+        document.getElementById('listViewBtn').addEventListener('click', function () {
+          state.layout = 'list';
+          saveState();
+          renderAll();
+        });
+
+        // Quick Add Form
+        document.getElementById('quickAddForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          const urlRaw = document.getElementById('quickUrl').value.trim();
+          if (!urlRaw) {
+            showToast('أدخل رابطاً أولاً للحفظ السريع', 'warning');
+            return;
+          }
+          const url = normalizeUrl(urlRaw);
+          const duplicate = state.links.find(function (l) { return l.url.toLowerCase() === url.toLowerCase(); });
+          if (duplicate) {
+            showToast('هذا الرابط محفوظ مسبقاً باسم: ' + duplicate.title, 'warning');
+            return;
+          }
+          const titleRaw = document.getElementById('quickTitle').value.trim();
+          const aliasRaw = document.getElementById('quickAlias').value.trim();
+          const defaultCat = state.activeView.startsWith('cat:') ? state.activeView.slice(4) : state.categories[0].id;
+
+          const newLink = {
+            id: 'lnk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+            title: titleRaw || extractDomain(url),
+            url: url,
+            alias: aliasRaw,
+            categoryId: defaultCat,
+            tags: [],
+            notes: '',
+            pinned: state.activeView === 'pinned',
+            readLater: state.activeView === 'readLater',
+            archived: false,
+            isPrivate: state.activeView === 'vault' && state.vaultUnlocked,
+            clicks: 0,
+            createdAt: Date.now(),
+            lastOpenedAt: null
+          };
+          state.links.unshift(newLink);
+          saveState();
+          e.target.reset();
+          renderAll();
+          showToast('تم حفظ الرابط بنجاح للاستدعاء السريع', 'success');
+        });
+
+        // Add/Edit Modal
+        document.getElementById('openAddModalBtn').addEventListener('click', function () { openAddOrEditModal(null); });
+        document.getElementById('emptyAddBtn').addEventListener('click', function () { openAddOrEditModal(null); });
+        document.getElementById('closeLinkModalBtn').addEventListener('click', closeLinkModal);
+        document.getElementById('cancelLinkModalBtn').addEventListener('click', closeLinkModal);
+
+        // Auto-detect duplicate URL & suggest title
+        document.getElementById('linkUrlInput').addEventListener('input', function (e) {
+          const val = normalizeUrl(e.target.value);
+          const editId = document.getElementById('editLinkId').value;
+          const dup = state.links.find(function (l) { return l.id !== editId && l.url.toLowerCase() === val.toLowerCase(); });
+          document.getElementById('duplicateWarning').classList.toggle('hidden', !dup);
+        });
+
+        document.getElementById('linkForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          const editId = document.getElementById('editLinkId').value;
+          const url = normalizeUrl(document.getElementById('linkUrlInput').value);
+          const title = document.getElementById('linkTitleInput').value.trim() || extractDomain(url);
+          const alias = document.getElementById('linkAliasInput').value.trim();
+          const categoryId = document.getElementById('linkCategorySelect').value || state.categories[0].id;
+          const tags = parseTags(document.getElementById('linkTagsInput').value);
+          const notes = document.getElementById('linkNotesInput').value.trim();
+          const pinned = document.getElementById('linkPinnedCheck').checked;
+          const readLater = document.getElementById('linkReadLaterCheck').checked;
+          const isPrivate = document.getElementById('linkPrivateCheck').checked;
+
+          if (editId) {
+            const target = state.links.find(function (l) { return l.id === editId; });
+            if (target) {
+              target.url = url;
+              target.title = title;
+              target.alias = alias;
+              target.categoryId = categoryId;
+              target.tags = tags;
+              target.notes = notes;
+              target.pinned = pinned;
+              target.readLater = readLater;
+              target.isPrivate = isPrivate;
+            }
+            showToast('تم تحديث الرابط بنجاح', 'success');
+          } else {
+            state.links.unshift({
+              id: 'lnk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+              url: url,
+              title: title,
+              alias: alias,
+              categoryId: categoryId,
+              tags: tags,
+              notes: notes,
+              pinned: pinned,
+              readLater: readLater,
+              archived: false,
+              isPrivate: isPrivate,
+              clicks: 0,
+              createdAt: Date.now(),
+              lastOpenedAt: null
+            });
+            showToast('تمت إضافة الرابط بنجاح', 'success');
+          }
+
+          saveState();
+          closeLinkModal();
+          renderAll();
+        });
+
+        // Delegated Clicks on Links Container
+        document.getElementById('linksContainer').addEventListener('click', function (e) {
+          const btn = e.target.closest('[data-action]');
+          if (!btn) return;
+          const action = btn.getAttribute('data-action');
+          const id = btn.getAttribute('data-id');
+
+          if (action === 'filter-tag') {
+            state.activeTag = btn.getAttribute('data-tag') || '';
+            renderAll();
+            return;
+          }
+
+          if (action === 'toggle-select') {
+            if (state.selectedIds.includes(id)) {
+              state.selectedIds = state.selectedIds.filter(function (x) { return x !== id; });
+            } else {
+              state.selectedIds.push(id);
+            }
+            renderAll();
+            return;
+          }
+
+          const item = state.links.find(function (l) { return l.id === id; });
+          if (!item) return;
+
+          if (action === 'open') {
+            openLinkById(id);
+          } else if (action === 'copy') {
+            copyToClipboard(item.url, 'تم نسخ الرابط: ' + item.title);
+          } else if (action === 'whatsapp') {
+            const text = item.title + '\n' + item.url + (item.notes ? '\n' + item.notes : '');
+            window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener,noreferrer');
+          } else if (action === 'pin') {
+            item.pinned = !item.pinned;
+            saveState();
+            renderAll();
+            showToast(item.pinned ? 'تم تثبيت الرابط في المفضلة' : 'تم إلغاء التثبيت', 'success');
+          } else if (action === 'archive') {
+            item.archived = !item.archived;
+            saveState();
+            renderAll();
+            showToast(item.archived ? 'تم نقل الرابط إلى الأرشيف' : 'تمت استعادة الرابط من الأرشيف', 'success');
+          } else if (action === 'edit') {
+            openAddOrEditModal(item);
+          } else if (action === 'delete') {
+            const idx = state.links.findIndex(function (l) { return l.id === id; });
+            if (idx !== -1) {
+              lastDeletedBackup = { item: state.links[idx], index: idx };
+              state.links.splice(idx, 1);
+              saveState();
+              renderAll();
+              showToast('تم حذف الرابط', 'warning', function () {
+                if (lastDeletedBackup) {
+                  state.links.splice(lastDeletedBackup.index, 0, lastDeletedBackup.item);
+                  lastDeletedBackup = null;
+                  saveState();
+                  renderAll();
+                }
+              });
+            }
+          }
+        });
+
+        // Bulk Mode Controls
+        document.getElementById('bulkModeBtn').addEventListener('click', function () {
+          state.bulkMode = !state.bulkMode;
+          state.selectedIds = [];
+          renderAll();
+        });
+        document.getElementById('bulkSelectAllBtn').addEventListener('click', function () {
+          const filtered = getFilteredLinks();
+          if (state.selectedIds.length === filtered.length) {
+            state.selectedIds = [];
+          } else {
+            state.selectedIds = filtered.map(function (l) { return l.id; });
+          }
+          renderAll();
+        });
+        document.getElementById('bulkMoveBtn').addEventListener('click', function () {
+          if (!state.selectedIds.length) return showToast('اختر رابطاً واحداً على الأقل', 'warning');
+          const targetCat = document.getElementById('bulkMoveCategorySelect').value;
+          state.links.forEach(function (l) {
+            if (state.selectedIds.includes(l.id)) l.categoryId = targetCat;
+          });
+          state.selectedIds = [];
+          saveState();
+          renderAll();
+          showToast('تم نقل الروابط المحددة بنجاح', 'success');
+        });
+        document.getElementById('bulkCopyBtn').addEventListener('click', function () {
+          if (!state.selectedIds.length) return showToast('اختر رابطاً واحداً على الأقل', 'warning');
+          const lines = state.links
+            .filter(function (l) { return state.selectedIds.includes(l.id); })
+            .map(function (l) { return l.title + '\n' + l.url; })
+            .join('\n\n');
+          copyToClipboard(lines, 'تم نسخ ' + state.selectedIds.length + ' روابط');
+        });
+        document.getElementById('bulkShareWaBtn').addEventListener('click', function () {
+          if (!state.selectedIds.length) return showToast('اختر رابطاً واحداً على الأقل', 'warning');
+          const lines = state.links
+            .filter(function (l) { return state.selectedIds.includes(l.id); })
+            .map(function (l, i) { return (i + 1) + '. ' + l.title + '\n' + l.url; })
+            .join('\n\n');
+          window.open('https://wa.me/?text=' + encodeURIComponent(lines), '_blank', 'noopener,noreferrer');
+        });
+        document.getElementById('bulkArchiveBtn').addEventListener('click', function () {
+          if (!state.selectedIds.length) return showToast('اختر رابطاً واحداً على الأقل', 'warning');
+          state.links.forEach(function (l) {
+            if (state.selectedIds.includes(l.id)) l.archived = !l.archived;
+          });
+          state.selectedIds = [];
+          saveState();
+          renderAll();
+          showToast('تم تحديث حالة الأرشفة للروابط المحددة', 'success');
+        });
+        document.getElementById('bulkDeleteBtn').addEventListener('click', function () {
+          if (!state.selectedIds.length) return showToast('اختر رابطاً واحداً على الأقل', 'warning');
+          openConfirm('حذف الروابط المحددة', 'هل تريد حذف ' + state.selectedIds.length + ' روابط محددة نهائياً؟', function () {
+            state.links = state.links.filter(function (l) { return !state.selectedIds.includes(l.id); });
+            state.selectedIds = [];
+            saveState();
+            renderAll();
+            showToast('تم حذف الروابط المحددة', 'success');
+          });
+        });
+
+        // Vault PIN Form
+        document.getElementById('vaultPinForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          const pin = document.getElementById('vaultPinInput').value.trim();
+          if (pin.length < 4) {
+            showToast('يجب أن يكون الرمز 4 أرقام على الأقل', 'warning');
+            return;
+          }
+          if (!state.vaultPin) {
+            state.vaultPin = pin;
+            state.vaultUnlocked = true;
+            saveState();
+            document.getElementById('vaultPinInput').value = '';
+            renderAll();
+            showToast('تم تعيين رمز الخزنة الخاصة وفتحها', 'success');
+          } else if (pin === state.vaultPin) {
+            state.vaultUnlocked = true;
+            document.getElementById('vaultPinInput').value = '';
+            renderAll();
+            showToast('تم فتح الخزنة الخاصة', 'success');
+          } else {
+            showToast('رمز PIN غير صحيح', 'error');
+          }
+        });
+        document.getElementById('lockVaultBtn').addEventListener('click', function () {
+          state.vaultUnlocked = false;
+          if (state.activeView === 'vault') state.activeView = 'all';
+          renderAll();
+          showToast('تم قفل الخزنة الخاصة', 'success');
+        });
+
+        // Category Manager Modal
+        document.getElementById('openCategoryModalBtn').addEventListener('click', function () {
+          renderCategoriesManager();
+          document.getElementById('categoryModal').classList.remove('hidden');
+        });
+        document.getElementById('closeCategoryModalBtn').addEventListener('click', function () {
+          document.getElementById('categoryModal').classList.add('hidden');
+        });
+        document.getElementById('addCategoryForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          const name = document.getElementById('newCategoryName').value.trim();
+          const color = document.getElementById('newCategoryColor').value;
+          if (!name) return;
+          state.categories.push({ id: 'cat_' + Date.now(), name: name, color: color });
+          document.getElementById('newCategoryName').value = '';
+          saveState();
+          renderCategoriesManager();
+          renderAll();
+          showToast('تمت إضافة التصنيف: ' + name, 'success');
+        });
+        document.getElementById('categoriesManagerList').addEventListener('click', function (e) {
+          const btn = e.target.closest('[data-del-cat]');
+          if (!btn) return;
+          const cid = btn.getAttribute('data-del-cat');
+          if (state.categories.length <= 1) return;
+          const fallbackId = state.categories.find(function (c) { return c.id !== cid; }).id;
+          state.links.forEach(function (l) { if (l.categoryId === cid) l.categoryId = fallbackId; });
+          state.categories = state.categories.filter(function (c) { return c.id !== cid; });
+          if (state.activeView === 'cat:' + cid) state.activeView = 'all';
+          saveState();
+          renderCategoriesManager();
+          renderAll();
+          showToast('تم حذف التصنيف ونقل روابطه للتصنيف الافتراضي', 'success');
+        });
+
+        // Backup Modal
+        document.getElementById('openBackupModalBtn').addEventListener('click', function () {
+          document.getElementById('backupModal').classList.remove('hidden');
+        });
+        document.getElementById('closeBackupModalBtn').addEventListener('click', function () {
+          document.getElementById('backupModal').classList.add('hidden');
+        });
+        document.getElementById('exportJsonBtn').addEventListener('click', function () {
+          const payload = JSON.stringify({
+            app: 'rawabti',
+            exportedAt: new Date().toISOString(),
+            categories: state.categories,
+            links: state.links
+          }, null, 2);
+          downloadFile(payload, 'rawabti-backup.json', 'application/json;charset=utf-8');
+          showToast('تم تنزيل النسخة الاحتياطية JSON', 'success');
+        });
+        document.getElementById('exportHtmlBookmarksBtn').addEventListener('click', exportNetscapeHtml);
+        document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+
+        // Import JSON or HTML Bookmarks
+        document.getElementById('importFileInput').addEventListener('change', function (e) {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function () {
+            const text = String(reader.result || '');
+            let importedCount = 0;
+            try {
+              if (file.name.toLowerCase().endsWith('.json')) {
+                const data = JSON.parse(text);
+                if (Array.isArray(data.categories)) {
+                  data.categories.forEach(function (c) {
+                    if (c.id && c.name && !state.categories.some(function (x) { return x.id === c.id; })) {
+                      state.categories.push(c);
+                    }
+                  });
+                }
+                const incoming = Array.isArray(data.links) ? data.links : (Array.isArray(data) ? data : []);
+                incoming.forEach(function (item) {
+                  if (!item.url) return;
+                  const u = normalizeUrl(item.url);
+                  if (!state.links.some(function (x) { return x.url.toLowerCase() === u.toLowerCase(); })) {
+                    state.links.unshift({
+                      id: item.id || ('lnk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)),
+                      title: item.title || extractDomain(u),
+                      url: u,
+                      alias: item.alias || '',
+                      categoryId: item.categoryId || state.categories[0].id,
+                      tags: Array.isArray(item.tags) ? item.tags : [],
+                      notes: item.notes || '',
+                      pinned: Boolean(item.pinned),
+                      readLater: Boolean(item.readLater),
+                      archived: Boolean(item.archived),
+                      isPrivate: Boolean(item.isPrivate),
+                      clicks: Number(item.clicks) || 0,
+                      createdAt: item.createdAt || Date.now(),
+                      lastOpenedAt: item.lastOpenedAt || null
+                    });
+                    importedCount++;
+                  }
+                });
+              } else {
+                // Parse Netscape HTML bookmarks
+                const doc = new DOMParser().parseFromString(text, 'text/html');
+                const anchors = doc.querySelectorAll('a[href]');
+                anchors.forEach(function (a) {
+                  const href = a.getAttribute('href');
+                  if (!href || !/^https?:\/\//i.test(href)) return;
+                  if (!state.links.some(function (x) { return x.url.toLowerCase() === href.toLowerCase(); })) {
+                    state.links.unshift({
+                      id: 'lnk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                      title: (a.textContent || '').trim() || extractDomain(href),
+                      url: href,
+                      alias: '',
+                      categoryId: state.categories[0].id,
+                      tags: ['مستورد'],
+                      notes: '',
+                      pinned: false,
+                      readLater: false,
+                      archived: false,
+                      isPrivate: false,
+                      clicks: 0,
+                      createdAt: Date.now(),
+                      lastOpenedAt: null
+                    });
+                    importedCount++;
+                  }
+                });
+              }
+              saveState();
+              renderAll();
+              showToast('تم استيراد ' + importedCount + ' رابط جديد بنجاح', 'success');
+            } catch (err) {
+              showToast('تعذر قراءة الملف — تأكد من سلامة التنسيق', 'error');
+            }
+            e.target.value = '';
+          };
+          reader.readAsText(file);
+        });
+
+        // Bulk paste URLs
+        document.getElementById('bulkPasteImportBtn').addEventListener('click', function () {
+          const raw = document.getElementById('bulkPasteTextarea').value;
+          const lines = raw.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+          let added = 0;
+          lines.forEach(function (line) {
+            const u = normalizeUrl(line);
+            if (!state.links.some(function (x) { return x.url.toLowerCase() === u.toLowerCase(); })) {
+              state.links.unshift({
+                id: 'lnk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                title: extractDomain(u),
+                url: u,
+                alias: '',
+                categoryId: state.categories[0].id,
+                tags: [],
+                notes: '',
+                pinned: false,
+                readLater: false,
+                archived: false,
+                isPrivate: false,
+                clicks: 0,
+                createdAt: Date.now(),
+                lastOpenedAt: null
+              });
+              added++;
+            }
+          });
+          document.getElementById('bulkPasteTextarea').value = '';
+          saveState();
+          renderAll();
+          showToast('تم استيراد ' + added + ' رابط جديد', 'success');
+        });
+
+        // Reset PIN
+        document.getElementById('changePinBtn').addEventListener('click', function () {
+          openConfirm('إعادة تعيين رمز الخزنة', 'سيتم مسح رمز PIN الحالي لتتمكن من تعيين رمز جديد عند فتح الخزنة الخاصة. هل تريد المتابعة؟', function () {
+            state.vaultPin = '';
+            state.vaultUnlocked = false;
+            saveState();
+            document.getElementById('backupModal').classList.add('hidden');
+            state.activeView = 'vault';
+            renderAll();
+            showToast('يمكنك الآن تعيين رمز PIN جديد للخزنة', 'success');
+          });
+        });
+
+        // Reset All Data
+        document.getElementById('resetAllDataBtn').addEventListener('click', function () {
+          openConfirm('مسح جميع البيانات', 'سيتم حذف جميع الروابط المحفوظة وإعادة التصنيفات الافتراضية. هل أنت متأكد؟', function () {
+            state.links = [];
+            state.categories = DEFAULT_CATEGORIES.slice();
+            state.activeView = 'all';
+            state.activeTag = '';
+            state.selectedIds = [];
+            saveState();
+            document.getElementById('backupModal').classList.add('hidden');
+            renderAll();
+            showToast('تم مسح جميع الروابط بنجاح', 'success');
+          });
+        });
+
+        // Confirm Modal buttons
+        document.getElementById('confirmCancelBtn').addEventListener('click', closeConfirm);
+        document.getElementById('confirmOkBtn').addEventListener('click', function () {
+          const cb = confirmCallback;
+          closeConfirm();
+          if (typeof cb === 'function') cb();
+        });
+      }
+
+      // Init
+      loadState();
+      bindEvents();
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
